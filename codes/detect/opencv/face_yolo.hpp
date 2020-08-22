@@ -70,12 +70,13 @@ void PostProcess(Mat& frame, std::vector<Mat>& outs) {
 		int idx = indices[i];
 		Rect box = boxes[idx];
 		String label = names[i];
-		cout << box.x << " " << box.y << " " << box.width << " " << box.height << endl;
-		//imshow(label, frame(Rect(box.x, box.y, box.width, box.height)));
-		rectangle(frame, Point(box.x, box.y), Point(box.x + box.width, box.y + box.height), Scalar(0, 0, 255));
-		putText(frame, label, Point(box.x, box.y), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 255, 255));
+		// cout << box.x << " " << box.y << " " << box.width << " " << box.height << endl;
+		// imshow(label, frame(Rect(box.x, box.y, box.width, box.height)));
+		// rectangle(frame, Point(box.x, box.y), Point(box.x + box.width, box.y + box.height), Scalar(0, 0, 255));
+		// putText(frame, label, Point(box.x, box.y), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 255, 255));
 	}
 }
+
 std::vector<String> getYOLONames(const std::string path) {
 	std::vector<String> classes;
 	std::ifstream f;
@@ -123,5 +124,5 @@ void sendMessage(int number) {
 		exit(0);
 	}
 
-    cout << "message sent" << endl << endl;
+    // cout << "message sent" << endl << endl;
 }

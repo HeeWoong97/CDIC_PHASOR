@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include "./opencv/face_yolo.hpp"
+#include <time.h>
 
 using namespace cv;
 using namespace std;
@@ -11,7 +12,14 @@ int main()
 	net.setPreferableBackend(dnn::DNN_BACKEND_OPENCV);
 	net.setPreferableTarget(dnn::DNN_TARGET_CPU);
 	
-	
+	int loop = 1;
+	clock_t start;
+	clock_t end;
+	clock_t loopStart;
+	clock_t loopEnd;
+	clock_t totalStart;
+	clock_t totalEnd;
+
 	VideoCapture cap(-1);
 
 	Mat blob;
@@ -19,25 +27,54 @@ int main()
 
 	std::vector<Mat> outs;
 
+	totalStart = clock();
+
 	while (true) {
-		// VideoCapture cap(-1);
+		cout << "========== loop: " << loop << " ==========" << endl;
+
+		loopStart = clock();
+
 		cap >> frame;
 		resize(frame, frame, Size(width, height));
 
+		start = clock();
 		dnn::blobFromImage(frame, blob, 1 / 255.0, Size(416, 416), Scalar(), true, false);
 		net.setInput(blob);
-
-		net.forward(outs, getOutPutsNames(net));
-
-		PostProcess(frame, outs);
-		imshow("result", frame);
-		outs.clear();
+		end = clock();
+		printf("\nblobFromImage Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
 		
-		if (waitKey(10) == 27) {
+		start = clock();
+		net.forward(outs, getOutPutsNames(net));
+		end = clock();
+		printf("\nforward Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+		
+		start = clock();
+		PostProcess(frame, outs);
+		end = clock();
+		printf("\nPostProcess Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+		
+		start = clock();
+		// imshow("result", frame);
+		outs.clear();
+		end = clock();
+		printf("\nimShow Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+
+		start = clock();
+		if (waitKey(300) == 27) {
 			break;
 		}
+		end = clock();
+		printf("\nwaitKey Time: %lf\n", (double)(end - start)/CLOCKS_PER_SEC);
+		
+		loopEnd = clock();
+		printf("\ntotal loop Time: %lf\n", (double)(loopEnd - loopStart)/CLOCKS_PER_SEC);
+		
+		totalEnd = clock();
+		printf("\ntotal Time until loop %d: %lf\n\n", loop, (double)(totalEnd - totalStart)/CLOCKS_PER_SEC);
+
+		loop++;
 	}
 		
-	destroyAllWindows();
+	// destroyAllWindows();
 	return 0;
 }
