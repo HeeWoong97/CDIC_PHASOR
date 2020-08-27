@@ -2,16 +2,11 @@ import serial
 import time
 import string
 import pynmea2
-import os.path
 
-FIFO_FILENAME = './fifo-gps'
+FIFO_FILENAME = './fifo-gps.txt'
 
 f = open("detect.txt", "r")
-
-if not os.path.exists(FIFO_FILENAME):
-    os.mkfifo(FIFO_FILENAME)
-if os.path.exists(FIFO_FILENAME):
-    fp_fifo = open(FIFO_FILENAME, "w")
+fp_fifo = open(FIFO_FILENAME, 'w')
 
 while True:
     port = "/dev/ttyS0"
@@ -38,5 +33,4 @@ while True:
         continue
 
 f.close()
-        
-
+fp_fifo.close()
