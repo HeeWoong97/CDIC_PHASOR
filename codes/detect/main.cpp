@@ -3,7 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include "./opencv/find_pothole.hpp"
-// #include <time.h>
+#include <time.h>
 
 using namespace cv;
 using namespace std;
@@ -24,13 +24,13 @@ int main()
 	net.setPreferableBackend(dnn::DNN_BACKEND_OPENCV);
 	net.setPreferableTarget(dnn::DNN_TARGET_CPU);
 	
-	// int loop = 1;
-	// clock_t start;
-	// clock_t end;
-	// clock_t loopStart;
-	// clock_t loopEnd;
-	// clock_t totalStart;
-	// clock_t totalEnd;
+	int loop = 1;
+	clock_t start;
+	clock_t end;
+	clock_t loopStart;
+	clock_t loopEnd;
+	clock_t totalStart;
+	clock_t totalEnd;
 
 	VideoCapture cap(-1);
 
@@ -40,53 +40,56 @@ int main()
 
 	std::vector<Mat> outs;
 
-	// totalStart = clock();
+	totalStart = clock();
 
 	while (true) {
-		// cout << "========== loop: " << loop << " ==========" << endl;
+		cout << "========== loop: " << loop << " ==========" << endl;
 
-		// loopStart = clock();
+		loopStart = clock();
 
 		cap >> frame;
-		resize(frame, frame, Size(width, height));
 		frame = rotate(frame, 180);
+		src = frame.clone();
+		cvtColor(frame, src, COLOR_BGR2GRAY);
 
-		// start = clock();
-		dnn::blobFromImage(frame, blob, 1 / 255.0, Size(416, 416), Scalar(), true, false);
+		resize(src, src, Size(width, height));
+
+		start = clock();
+		dnn::blobFromImage(src, blob, 1 / 255.0, Size(416, 416), Scalar(), true, false);
 		net.setInput(blob);
-		// end = clock();
-		// printf("\nblobFromImage Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+		end = clock();
+		printf("\nblobFromImage Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
 		
-		// start = clock();
+		start = clock();
 		net.forward(outs, getOutPutsNames(net));
-		// end = clock();
-		// printf("\nforward Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+		end = clock();
+		printf("\nforward Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
 		
-		// start = clock();
+		start = clock();
 		PostProcess(frame, outs);
 		imshow("result", frame);
-		// end = clock();
-		// printf("\nPostProcess Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+		end = clock();
+		printf("\nPostProcess Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
 		
-		// start = clock();
+		start = clock();
 		outs.clear();
-		// end = clock();
-		// printf("\nimShow Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+		end = clock();
+		printf("\nimShow Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
 
-		// start = clock();
+		start = clock();
 		if (waitKey(30) == 27) {
 			break;
 		}
-		// end = clock();
-		// printf("\nwaitKey Time: %lf\n", (double)(end - start)/CLOCKS_PER_SEC);
+		end = clock();
+		printf("\nwaitKey Time: %lf\n", (double)(end - start)/CLOCKS_PER_SEC);
 		
-		// loopEnd = clock();
-		// printf("\ntotal loop Time: %lf\n", (double)(loopEnd - loopStart)/CLOCKS_PER_SEC);
+		loopEnd = clock();
+		printf("\ntotal loop Time: %lf\n", (double)(loopEnd - loopStart)/CLOCKS_PER_SEC);
 		
-		// totalEnd = clock();
-		// printf("\ntotal Time until loop %d: %lf\n\n", loop, (double)(totalEnd - totalStart)/CLOCKS_PER_SEC);
+		totalEnd = clock();
+		printf("\ntotal Time until loop %d: %lf\n\n", loop, (double)(totalEnd - totalStart)/CLOCKS_PER_SEC);
 
-		// loop++;
+		loop++;
 	}
 		
 	destroyAllWindows();

@@ -16,8 +16,8 @@
 using namespace std;
 using namespace cv;
 
-std::string YOLO_CFG_PATH = "./opencv/phasor-train-yolo.cfg";
-std::string YOLO_WEIGHT_PATH = "./opencv/phasor-train-yolo_final.weights";
+std::string YOLO_CFG_PATH = "./opencv/phasor-gray-train-yolo.cfg";
+std::string YOLO_WEIGHT_PATH = "./opencv/phasor-gray-train-yolo_final.weights";
 std::string YOLO_NAME_PATH = "./opencv/phasor-classes.names";
 std::string test_file = "./opencv/pothole4.jpg";
 
