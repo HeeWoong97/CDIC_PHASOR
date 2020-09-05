@@ -1,97 +1,102 @@
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <iostream>
-#include "./opencv/find_pothole.hpp"
+#include "PotholeDetection.hpp"
+#include <utility>
 #include <time.h>
+#include <stdlib.h>
+#include <string>
+#include <ctime>
 
 using namespace cv;
 using namespace std;
 
-Mat rotate(Mat src, double angle)
-{
-	Mat dst;
-	Point2f pt(src.cols/2., src.rows/2.);
-	Mat r = getRotationMatrix2D(pt, angle, 1.0);
-	warpAffine(src, dst, r, Size(src.cols, src.rows));
-
-	return dst;
-}
-
 int main()
 {
-	dnn::Net net = dnn::readNetFromDarknet(YOLO_CFG_PATH, YOLO_WEIGHT_PATH);
-	net.setPreferableBackend(dnn::DNN_BACKEND_OPENCV);
-	net.setPreferableTarget(dnn::DNN_TARGET_CPU);
+	std::string YOLO_CFG_PATH = "./cfg/phasor-gray-train-yolo-v3.cfg";
+	std::string YOLO_WEIGHT_PATH = "./weight/phasor-gray-train-yolo-v3_final.weights";
+	std::string YOLO_NAME_PATH = "./name/phasor-classes.names";
+
+	PotholeDetection detector(YOLO_CFG_PATH, YOLO_WEIGHT_PATH, YOLO_NAME_PATH);
+	detector.setInputSize(Size(256, 256));
 	
-	int loop = 1;
-	clock_t start;
-	clock_t end;
-	clock_t loopStart;
-	clock_t loopEnd;
-	clock_t totalStart;
-	clock_t totalEnd;
-
 	VideoCapture cap(-1);
-
-	Mat blob;
 	Mat frame;
-	Mat src;
 
-	std::vector<Mat> outs;
-
-	totalStart = clock();
+	int lastCount = 0;
 
 	while (true) {
-		cout << "========== loop: " << loop << " ==========" << endl;
-
-		loopStart = clock();
-
+		time_t start = clock();
 		cap >> frame;
-		frame = rotate(frame, 180);
-		src = frame.clone();
-		cvtColor(frame, src, COLOR_BGR2GRAY);
+		flip(frame, frame, 0);
+		flip(frame, frame, 1);
 
-		resize(src, src, Size(width, height));
+		Mat src = frame.clone();
+		detector.predict(src, true);
+		detector.PostProcess(frame);
 
-		start = clock();
-		dnn::blobFromImage(src, blob, 1 / 255.0, Size(416, 416), Scalar(), true, false);
-		net.setInput(blob);
-		end = clock();
-		printf("\nblobFromImage Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+		if (detector.outs.size() > 0 && detector.outs.size() != lastCount)  {
+			lastCount = detector.outs.size();
+			
+			// save img file
+			string img_route;
+			
+			struct tm curr_tm;
+			time_t curr_time = time(nullptr);
+
+			localtime_r(&curr_time, &curr_tm);
+
+			string curr_year = to_string(curr_tm.tm_year + 1900);
+			string curr_month = to_string(curr_tm.tm_mon + 1);
+			string curr_day = to_string(curr_tm.tm_mday);
+			string curr_hour = to_string(curr_tm.tm_hour);
+			string curr_minute = to_string(curr_tm.tm_min);
+			string curr_second = to_string(curr_tm.tm_sec);
+
+			img_route = "../images/" + curr_year + "-" + curr_month + "-" + curr_day + " " + curr_hour + ":" + curr_minute + ":" + curr_second + ".jpg";
+		        char route[100];
+			strcpy(route, img_route.c_str());
+			cout << img_route << endl;
+			imwrite(img_route, frame);
 		
-		start = clock();
-		net.forward(outs, getOutPutsNames(net));
-		end = clock();
-		printf("\nforward Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
-		
-		start = clock();
-		PostProcess(frame, outs);
+			/*
+			string img_command = "python3 camera/takePicture.py ";
+			img_command += img_route;
+			char img_cmd[100];
+			strcpy(img_cmd, img_command.c_str());
+		        system(img_cmd);	
+			cout << img_command << endl;
+			*/
+
+			// run index.py
+			cout << "num of potholes: " << detector.outs.size() << endl;
+			lastCount = detector.outs.size();
+			string command = "python3 ../index.py ";
+			string pothole_num = to_string(detector.outs.size());
+			command += pothole_num;
+			command = command + " " + "\'" + img_route + "\'";
+
+			char cmd[100];
+			strcpy(cmd, command.c_str());
+			cout<< command << endl;
+			system(cmd);	
+		}
+
+		for (int i = 0; i < detector.outs.size(); i++) {
+			string label = detector.outs[i].first;
+			Rect box = detector.outs[i].second;
+			rectangle(frame, box, (0, 0, 255));
+			putText(frame, label, Point(box.x, box.y), FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0));
+		}
+
 		imshow("result", frame);
-		end = clock();
-		printf("\nPostProcess Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
-		
-		start = clock();
-		outs.clear();
-		end = clock();
-		printf("\nimShow Time: %lf s\n", (double)(end - start)/CLOCKS_PER_SEC);
+		detector.outs.clear();
 
-		start = clock();
-		if (waitKey(30) == 27) {
+		
+		if (waitKey(200) == 27) {
 			break;
 		}
-		end = clock();
-		printf("\nwaitKey Time: %lf\n", (double)(end - start)/CLOCKS_PER_SEC);
-		
-		loopEnd = clock();
-		printf("\ntotal loop Time: %lf\n", (double)(loopEnd - loopStart)/CLOCKS_PER_SEC);
-		
-		totalEnd = clock();
-		printf("\ntotal Time until loop %d: %lf\n\n", loop, (double)(totalEnd - totalStart)/CLOCKS_PER_SEC);
-
-		loop++;
+		time_t end = clock();
+		cout << "Time: " << (double)(end - start)/CLOCKS_PER_SEC << endl;
 	}
-		
-	destroyAllWindows();
+
+	cap.release();
 	return 0;
 }

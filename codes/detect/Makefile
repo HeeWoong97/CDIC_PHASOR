@@ -1,11 +1,12 @@
 .PHONY: all clean
 
-CPP = g++
+GCC = gcc
 SRCS = $(wildcard *.cpp)
 PROGS = $(patsubst %.cpp,%,$(SRCS))
 PKGFLAGS = `pkg-config --libs --cflags opencv4`
+LSTDC = -lstdc++
 
 all: $(PROGS)
 
 %: %.cpp
-	$(CPP) -o $@ $< $(PKGFLAGS)
+	$(GCC) -o $@ $< $(PKGFLAGS) $(LSTDC)
