@@ -1,1 +1,1 @@
-main.cpp PotholeDetection.cpp `pkg-config --libs --cflags opencv4` -lstdc++
+gcc -o main main.cpp PotholeDetection.cpp `pkg-config --libs --cflags opencv4` -lstdc++

@@ -32,9 +32,7 @@ int main()
 		detector.predict(src, true);
 		detector.PostProcess(frame);
 
-		if (detector.outs.size() > 0 && detector.outs.size() != lastCount)  {
-			lastCount = detector.outs.size();
-			
+		if (detector.outs.size() > 0 && detector.outs.size() > lastCount)  {
 			// save img file
 			string img_route;
 			
@@ -78,6 +76,7 @@ int main()
 			cout<< command << endl;
 			system(cmd);	
 		}
+		lastCount = detector.outs.size();
 
 		for (int i = 0; i < detector.outs.size(); i++) {
 			string label = detector.outs[i].first;
