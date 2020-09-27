@@ -6,10 +6,13 @@ import sys
 # gps값 가져오기
 print("request GPS value...")
 lat, lng = save_gps()
+
+'''
 if (lat is None or lng is None) or (lat < 30 or lng < 120):
     print("GPS is not available...")
     lat = 37.50366383333333
     lng = 126.9582585
+'''
 
 # 사진 가져오기
 image_name = sys.argv[2];

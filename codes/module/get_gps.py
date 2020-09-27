@@ -16,8 +16,6 @@ def save_gps():
             lng = newmsg.longitude
             print(str(lat) + str(lng))
             return lat, lng 
-    return None, None
-        
 
 '''
 def save_gps():
