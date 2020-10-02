@@ -120,15 +120,9 @@ void PotholeDetection::predict(Mat& frame, bool isGray, bool isFlip) {
 	dnn::blobFromImage(frame, blob, 1 / 255.0, this->input_size, Scalar(), true, false);
 	net.setInput(blob);
 	net.forward(this->predictions, this->output_layers);
-	/*
-	if (isGray) {
-		cvtColor(frame, frame, COLOR_GRAY2BGR);
-	}
-	*/
 }
 
 void PotholeDetection::PostProcess(Mat& frame) {
-	vector<int> classIds;
 	std::vector<float> confidences;
 	std::vector<Rect> boxes;
 
@@ -148,7 +142,6 @@ void PotholeDetection::PostProcess(Mat& frame) {
 				int left = center_x - w / 2 < 0 ? 0 : center_x - w / 2;
 				int top = center_y - h / 2 < 0 ? 0 : center_y - h / 2;
 
-				classIds.push_back(classIdPoint.x);
 				confidences.push_back((float)confidence);
 				boxes.push_back(Rect(left, top, w, h));
 			}
@@ -159,7 +152,6 @@ void PotholeDetection::PostProcess(Mat& frame) {
 	for (size_t i = 0; i < indices.size(); i++) {
 		int idx = indices[i];
 		Rect box = boxes[idx];
-		String label = this->class_names[classIds[idx]];
-		this->outs.push_back(make_pair(label, box));
+		this->outs.push_back(box);
 	}
 }

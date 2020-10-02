@@ -36,7 +36,7 @@ def upload_image(local_image_name):
     return image_url
 
 def send_data_to_db(latitude, longitude, magnitude, image_link):
-    url = "https://gif1x88844.execute-api.ap-northeast-2.amazonaws.com/dev/roadData"
+    url = "http://13.209.80.129:3000"
 
     payload = {
         'latitude': latitude,
